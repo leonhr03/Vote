@@ -1,98 +1,136 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import {StyleSheet, Platform, Text, View, FlatList, TouchableOpacity, TextInput} from "react-native"
+import {SafeAreaProvider} from "react-native-safe-area-context";
+import {useCallback, useState} from "react";
+import {supabase} from "@/utils/supabase";
+import {useFocusEffect} from "expo-router";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+export default function Index() {
 
-export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
+    const [surveys, setSurveys] = useState([{question: "magst du Programmieren lernen?", answer1: "yes", answer2: "no" }, {question: "magst du Programmieren lernen?", answer1: "yes", answer2: "no" }]);
+    const [search, setSearch] = useState("");
+    const filteredSurveys = surveys.filter(survey => survey.question.toLowerCase().includes(search.toLowerCase()));
+
+    useFocusEffect(
+        useCallback(() => {
+            const fetchSurveys = async () => {
+                const { data, error } = await supabase.from("surveys").select("*");
+                if (!error) setSurveys(data || []);
+            };
+            fetchSurveys();
+        }, [])
+    );
+
+    const renderItem = ({item} : any) => {
+        return (
+            <View style={styles.itemCard}>
+                <Text style={styles.questionText}>{item.question}</Text>
+                <View style={styles.buttonRow}>
+                    <TouchableOpacity style={styles.button} onPress={() => alert("cool")}>
+                        <Text style={styles.buttonText}>{item.answer1}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.button} onPress={() => alert("not cool")}>
+                        <Text style={styles.buttonText}>{item.answer2}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        )
+    }
+
+    return(
+        <SafeAreaProvider style={styles.container}>
+            <Text style={styles.heading}>Vote</Text>
+            <TextInput
+                value={search}
+                onChangeText={setSearch}
+                placeholderTextColor="black"
+                placeholder={"search"}
+                style={styles.search}
             />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+            <FlatList
+                data={filteredSurveys}
+                renderItem={renderItem}
+                style={{width: "100%"}}
+                contentContainerStyle={{ paddingBottom: 80 }}
+                keyExtractor={(item, index) => index.toString()}
+            />
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+        </SafeAreaProvider>
+
+    )
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        padding: 16,
+    },
+
+    heading: {
+        fontSize: 25,
+        fontWeight: 'bold',
+        color: '#000',
+        marginTop: Platform.OS === 'android' ? 20 : 0,
+        marginBottom: 20,
+    },
+
+    search: {
+        width: "95%",
+        padding: 15,
+        backgroundColor: '#fff',
+        borderWidth: 1,
+        borderRadius: 15,
+        borderColor: "rgba(74, 144, 226, 0.1)",
+        shadowColor: "#4A90E2",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 8,
+    },
+
+    itemCard: {
+        alignSelf: "center",
+        width: "90%",
+        padding: 20,
+        marginVertical: 10,
+        justifyContent: "center",
+        borderRadius: 20,
+        backgroundColor: "#fff",
+        borderWidth: 1,
+        borderColor: "rgba(74, 144, 226, 0.1)",
+        shadowColor: "#4A90E2",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 8,
+    },
+
+    questionText: {
+        fontSize: 20,
+        color: '#000',
+    },
+
+    buttonRow: {
+        flexDirection: "column",
+        width: "100%",
+        alignSelf: "center",
+        marginTop: 20,
+    },
+
+    button: {
+        padding: 10,
+        backgroundColor: "#4a90e2",
+        alignItems: "center",
+        justifyContent: "center",
+        alignSelf: "center",
+        width: "90%",
+        borderRadius: 15,
+        marginVertical: 10,
+    },
+
+    buttonText: {
+        color: "#fff",
+        fontSize: 20,
+    },
+})
