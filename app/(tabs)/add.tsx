@@ -1,42 +1,58 @@
 import {
     StyleSheet,
-    Modal,
     Text,
     View,
-    TouchableWithoutFeedback,
     Platform,
     TextInput,
-    FlatList,
     TouchableOpacity
 } from "react-native";
-import { useState } from "react";
-import { useRouter } from "expo-router";
+import {useCallback, useState} from "react";
+import {useFocusEffect} from "expo-router";
 import {SafeAreaProvider} from "react-native-safe-area-context";
-import { supabase } from "../../utils/supabase";
+import { supabase } from "@/utils/supabase";
+import {User} from "@supabase/auth-js";
 
 export default function Add() {
-    const router = useRouter();
 
+    const [user, setUser] = useState<User>();
     const [newQuestion, setNewQuestion] = useState("")
     const [newAnswer1, setNewAnswer1] = useState("")
     const [newAnswer2, setNewAnswer2] = useState("")
 
+    useFocusEffect(
+        useCallback(() => {
+            const getUser = async () => {
+                const {data, error} = await supabase.auth.getUser();
+                if(error){
+                    console.error(error)
+                } else {
+                    console.log(data.user.email)
+                    setUser(data.user)
+                }
+
+            };
+            getUser();
+        }, [])
+    );
+
+
     async function add() {
-        const {data, error} = await supabase
+
+        const { data, error } = await supabase
             .from("surveys")
             .insert({
+                useremail: user?.email,
                 question: newQuestion,
                 answer1: newAnswer1,
                 answer2: newAnswer2,
+            });
 
-            })
-
-            if (error) console.error(error);
-            console.log(data);
-            setNewQuestion("")
-            setNewAnswer1("")
-            setNewAnswer2("")
-            return data;
+        if (error) console.error(error);
+        console.log(data);
+        setNewQuestion("")
+        setNewAnswer1("")
+        setNewAnswer2("")
+        return data;
     }
 
     return (
