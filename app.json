@@ -1,9 +1,10 @@
 {
   "expo": {
     "name": "Vote",
-    "slug": "Vote",
+    "slug": "vote",
     "version": "1.0.0",
     "orientation": "portrait",
+    "projectId" : "4bce8700-4c77-47d1-92c1-0e8e32189269",
     "icon": "./assets/images/icon.png",
     "scheme": "vote",
     "userInterfaceStyle": "automatic",
@@ -45,6 +46,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4bce8700-4c77-47d1-92c1-0e8e32189269"
+      }
+    },
+    "owner": "leonhuber"
   }
 }

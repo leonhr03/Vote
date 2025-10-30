@@ -16,7 +16,7 @@ import { useFocusEffect } from "expo-router";
 import SurveyItem from "@/components/listItem";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Index() {
+export default function Home() {
     const [isLoading, setIsLoading] = useState(true);
     const [surveys, setSurveys] = useState<any[]>([]);
     const [search, setSearch] = useState("");

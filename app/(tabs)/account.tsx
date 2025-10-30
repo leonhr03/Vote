@@ -12,19 +12,19 @@ import {
 } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useFocusEffect } from "expo-router";
+import {useFocusEffect, useRouter} from "expo-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { supabase } from "@/utils/supabase";
 import { User } from "@supabase/auth-js";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Account() {
+    const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
     const [user, setUser] = useState<User>();
     const [surveys, setSurveys] = useState<any[]>([]);
     const [commentModalVisible, setCommentModalVisible] = useState(false);
     const [selectedSurvey, setSelectedSurvey] = useState<any>(null);
-    const [newComment, setNewComment] = useState("");
 
     useFocusEffect(
         useCallback(() => {
@@ -85,30 +85,16 @@ export default function Account() {
         setCommentModalVisible(true);
     };
 
-    const addComment = async () => {
-        if (!newComment || !selectedSurvey) return;
-
-        const updatedComments = [
-            ...(selectedSurvey.comments || []),
-            { comment: newComment },
-        ];
-
-        const { error } = await supabase
-            .from("surveys")
-            .update({ comments: updatedComments })
-            .eq("id", selectedSurvey.id);
-
-        if (!error) {
-            const updatedSurveys = surveys.map((s) =>
-                s.id === selectedSurvey.id ? { ...s, comments: updatedComments } : s
-            );
-            setSurveys(updatedSurveys);
-            setSelectedSurvey({ ...selectedSurvey, comments: updatedComments });
-            setNewComment("");
-        } else {
+    const logout = async() =>{
+        const {error} = await supabase.auth.signOut();
+        if (error) {
             console.error(error);
+            alert("logout fehlgeschlagen")
         }
-    };
+
+        await AsyncStorage.removeItem("isLogin");
+        router.replace("/");
+    }
 
     const renderCommentItem = ({ item }: any) => (
         <View style={styles.commentItem}>
@@ -164,7 +150,10 @@ export default function Account() {
     if (!isLoading) {
 
         return (
-            <SafeAreaProvider style={styles.container}>
+            <SafeAreaProvider style={styles.container }>
+                <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+                    <Ionicons name="log-out" size={25} color="#000" />
+                </TouchableOpacity>
                 <Ionicons
                     name="person"
                     size={130}
@@ -219,6 +208,13 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         padding: 16,
     },
+
+    logoutButton: {
+        position: "absolute",
+        top: 30,
+        right: 30,
+    },
+
     heading: {
         fontSize: 20,
         fontWeight: "bold",

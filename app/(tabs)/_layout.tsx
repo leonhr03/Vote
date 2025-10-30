@@ -30,7 +30,7 @@ export default function RootLayout(){
                     color: '#000',
                 },
             }}>
-            <Tabs.Screen name="index" options={{
+            <Tabs.Screen name="home" options={{
                 tabBarLabel: "Home",
                 tabBarIcon: ({color, size, focused}) => (
                     <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={color} />
